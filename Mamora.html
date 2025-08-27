@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Mamora</title>
+    <!-- Menggunakan Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Menggunakan Font Awesome untuk ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Animasi sederhana untuk transisi halaman */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .active {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .active-tab {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Kontainer Utama Aplikasi -->
+    <div id="app" class="max-w-4xl mx-auto p-4 md:p-6">
+
+        <!-- Header Aplikasi -->
+        <header class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-slate-700">Mamora</h1>
+            <button id="admin-menu-btn"
+                class="text-sm text-gray-600 hover:text-blue-600 font-semibold py-2 px-4 rounded-lg transition-colors duration-300 bg-white shadow-sm">
+                <i class="fas fa-user-shield mr-2"></i>Admin
+            </button>
+        </header>
+
+        <!-- Halaman Utama (Pemilihan Menu) -->
+        <main id="home-page" class="page active">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div onclick="showPage('absensi-page')"
+                    class="bg-white p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer text-center transform hover:-translate-y-1">
+                    <i class="fas fa-fingerprint text-5xl text-blue-500 mb-4"></i>
+                    <h2 class="text-2xl font-bold text-gray-800">Absensi Ubud</h2>
+                    <p class="text-gray-500 mt-2">Lakukan absensi masuk dan pulang secara online.</p>
+                </div>
+                <div onclick="showPage('cuti-page')"
+                    class="bg-white p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer text-center transform hover:-translate-y-1">
+                    <i class="fas fa-calendar-alt text-5xl text-green-500 mb-4"></i>
+                    <h2 class="text-2xl font-bold text-gray-800">Cek Cuti</h2>
+                    <p class="text-gray-500 mt-2">Lihat sisa cuti dan masa berlakunya.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Halaman Absensi -->
+        <section id="absensi-page" class="page bg-white p-6 rounded-xl shadow-lg">
+            <button onclick="showPage('home-page')" class="mb-4 text-blue-600 hover:underline"><i
+                    class="fas fa-arrow-left mr-2"></i>Kembali</button>
+            <h2 class="text-2xl font-bold mb-4">Absensi Karyawan</h2>
+            <div id="absensi-form">
+                <div class="mb-4">
+                    <label for="employee-select" class="block text-sm font-medium text-gray-700 mb-1">Pilih Nama
+                        Anda</label>
+                    <select id="employee-select"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        <option value="">-- Pilih Karyawan --</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="pin-input" class="block text-sm font-medium text-gray-700 mb-1">Masukkan PIN</label>
+                    <input type="password" id="pin-input"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        placeholder="Masukkan PIN Anda">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="handleAbsensi('masuk')"
+                        class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition-colors duration-300 flex items-center justify-center">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Absen Masuk
+                    </button>
+                    <button onclick="handleAbsensi('pulang')"
+                        class="w-full bg-red-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-600 transition-colors duration-300 flex items-center justify-center">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Absen Pulang
+                    </button>
+                </div>
+            </div>
+            <div id="absensi-status" class="mt-4 text-center"></div>
+        </section>
+
+        <!-- Halaman Cuti -->
+        <section id="cuti-page" class="page bg-white p-6 rounded-xl shadow-lg">
+            <button onclick="showPage('home-page')" class="mb-4 text-blue-600 hover:underline"><i
+                    class="fas fa-arrow-left mr-2"></i>Kembali</button>
+            <h2 class="text-2xl font-bold mb-4">Informasi Cuti Karyawan</h2>
+            <div class="mb-4">
+                <label for="cuti-employee-select" class="block text-sm font-medium text-gray-700 mb-1">Pilih Nama
+                    Karyawan</label>
+                <select id="cuti-employee-select" onchange="displayCutiDetails()"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    <option value="">-- Pilih Karyawan --</option>
+                </select>
+            </div>
+            <div id="cuti-details" class="mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200 hidden">
+                <!-- Detail cuti akan ditampilkan di sini -->
+            </div>
+        </section>
+
+        <!-- Halaman Login Admin -->
+        <section id="admin-login-page" class="page bg-white p-6 rounded-xl shadow-lg">
+            <button onclick="showPage('home-page')" class="mb-4 text-blue-600 hover:underline"><i
+                    class="fas fa-arrow-left mr-2"></i>Kembali</button>
+            <h2 class="text-2xl font-bold mb-4">Login Admin</h2>
+            <div class="mb-4">
+                <label for="admin-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input type="password" id="admin-password"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+            <button onclick="handleAdminLogin()"
+                class="w-full bg-slate-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-slate-800 transition-colors duration-300">Login</button>
+            <p id="admin-login-error" class="text-red-500 text-sm mt-2"></p>
+        </section>
+
+        <!-- Halaman Panel Admin -->
+        <section id="admin-panel-page" class="page bg-white p-6 rounded-xl shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Panel Admin</h2>
+                <button onclick="logoutAdmin()"
+                    class="text-sm bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition-colors">Logout</button>
+            </div>
+
+            <!-- Navigasi Tab Admin -->
+            <div class="border-b border-gray-200 mb-4">
+                <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                    <button onclick="showAdminTab('karyawan')"
+                        class="admin-tab active-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Kelola
+                        Karyawan</button>
+                    <button onclick="showAdminTab('cuti')"
+                        class="admin-tab text-gray-500 hover:text-gray-700 whitespace-nowrap py-3 px-1 border-b-2 border-transparent font-medium text-sm">Update
+                        Cuti</button>
+                    <button onclick="showAdminTab('absensi')"
+                        class="admin-tab text-gray-500 hover:text-gray-700 whitespace-nowrap py-3 px-1 border-b-2 border-transparent font-medium text-sm">Data
+                        Absensi</button>
+                    <button onclick="showAdminTab('pengaturan')"
+                        class="admin-tab text-gray-500 hover:text-gray-700 whitespace-nowrap py-3 px-1 border-b-2 border-transparent font-medium text-sm">Pengaturan</button>
+                </nav>
+            </div>
+
+            <!-- Konten Tab Admin -->
+            <div id="admin-content">
+                <!-- Tab Kelola Karyawan -->
+                <div id="admin-tab-karyawan" class="admin-tab-content">
+                    <h3 class="text-lg font-semibold mb-2">Daftar Karyawan</h3>
+                    <div id="employee-list-admin" class="space-y-2 mb-4"></div>
+                    <h3 class="text-lg font-semibold mb-2 mt-6">Tambah Karyawan Baru</h3>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <input type="text" id="new-employee-name" placeholder="Nama Karyawan"
+                            class="flex-grow p-2 border rounded-lg">
+                        <input type="text" id="new-employee-pin" placeholder="PIN Karyawan"
+                            class="p-2 border rounded-lg">
+                        <button onclick="addEmployee()"
+                            class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Tambah</button>
+                    </div>
+                </div>
+
+                <!-- Tab Update Cuti -->
+                <div id="admin-tab-cuti" class="admin-tab-content" style="display: none;">
+                    <h3 class="text-lg font-semibold mb-2">Update Data Cuti</h3>
+                    <select id="update-cuti-employee-select" onchange="displayAdminCutiEditor()"
+                        class="w-full p-3 mb-4 border rounded-lg">
+                        <option value="">-- Pilih Karyawan --</option>
+                    </select>
+                    <div id="update-cuti-form" class="space-y-6 hidden">
+                        <!-- Editor Cuti akan dimuat di sini -->
+                    </div>
+                </div>
+
+                <!-- Tab Data Absensi -->
+                <div id="admin-tab-absensi" class="admin-tab-content" style="display: none;">
+                    <h3 class="text-lg font-semibold mb-2">Laporan Absensi</h3>
+                    <button onclick="exportAbsensiToCSV()"
+                        class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 mb-4">
+                        <i class="fas fa-file-csv mr-2"></i>Tarik Data (CSV)
+                    </button>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white border">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="py-2 px-4 border-b">Nama</th>
+                                    <th class="py-2 px-4 border-b">Tipe</th>
+                                    <th class="py-2 px-4 border-b">Waktu</th>
+                                    <th class="py-2 px-4 border-b">Status Lokasi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="absensi-log-table">
+                                <!-- Data log absensi akan diisi di sini -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab Pengaturan -->
+                <div id="admin-tab-pengaturan" class="admin-tab-content" style="display: none;">
+                    <h3 class="text-lg font-semibold mb-2">Pengaturan Aplikasi</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block font-medium">Lokasi Absensi (Latitude, Longitude)</label>
+                            <input type="text" id="setting-location" class="w-full p-2 border rounded-lg mt-1">
+                        </div>
+                        <div>
+                            <label class="block font-medium">Jarak Toleransi (meter)</label>
+                            <input type="number" id="setting-distance" class="w-full p-2 border rounded-lg mt-1">
+                        </div>
+                        <div>
+                            <label class="block font-medium">Ganti Password Admin</label>
+                            <input type="password" id="setting-new-password" placeholder="Password baru"
+                                class="w-full p-2 border rounded-lg mt-1">
+                        </div>
+                        <button onclick="saveSettings()"
+                            class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600">Simpan
+                            Pengaturan</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Custom Modal for Notifications -->
+    <div id="custom-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-11/12 max-w-sm text-center">
+            <div id="modal-icon" class="text-4xl mb-4"></div>
+            <h3 id="modal-title" class="text-xl font-bold mb-2"></h3>
+            <p id="modal-message" class="text-gray-600 mb-6"></p>
+            <button onclick="closeModal()"
+                class="bg-blue-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-600 transition-colors">OK</button>
+        </div>
+    </div>
+
+
+    <script>
+        // --- DATABASE SEMENTARA (FRONTEND) ---
+        let employees = [
+            { id: 1, name: 'Budi Santoso', pin: '123456789' },
+            { id: 2, name: 'Citra Lestari', pin: '87654321' },
+            { id: 3, name: 'Dewi Anggraini', pin: '11223344' },
+            { id: 4, name: 'Eko Prasetyo', pin: '55667788' }
+        ];
+
+        // Struktur data cuti diubah menjadi array untuk melacak setiap cuti
+        let leaveData = [
+            {
+                employeeId: 1,
+                dp: [
+                    { amount: 1, issueDate: '2024-05-10' },
+                    { amount: 1, issueDate: '2024-06-15' }
+                ],
+                al: [
+                    { amount: 5, issueDate: '2024-01-15' },
+                    { amount: 5, issueDate: '2024-02-20' }
+                ]
+            },
+            {
+                employeeId: 2,
+                dp: [{ amount: 1, issueDate: '2025-07-01' }],
+                al: [{ amount: 12, issueDate: '2025-01-20' }]
+            },
+            {
+                employeeId: 3,
+                dp: [],
+                al: [{ amount: 8, issueDate: '2025-02-01' }]
+            },
+            {
+                employeeId: 4,
+                dp: [],
+                al: []
+            }
+        ];
+
+        let attendanceLog = [];
+
+        // --- PENGATURAN APLIKASI ---
+        let appSettings = {
+            targetLocation: { lat: -8.506817, lon: 115.262583 },
+            toleranceDistance: 100,
+            adminPassword: 'malinda1' // Password diubah
+        };
+
+        // --- FUNGSI UTAMA ---
+
+        // REVISI: Fungsi showPage diperbarui untuk me-refresh data cuti
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+
+            // Jika halaman yang dituju adalah halaman cuti, panggil fungsi displayCutiDetails
+            // untuk memastikan data yang ditampilkan adalah yang terbaru.
+            if (pageId === 'cuti-page') {
+                displayCutiDetails();
+            }
+
+            // Jika kembali ke halaman utama, reset pilihan dan sembunyikan detail.
+            if (pageId === 'home-page') {
+                document.getElementById('cuti-employee-select').value = '';
+                document.getElementById('employee-select').value = '';
+                document.getElementById('cuti-details').classList.add('hidden');
+            }
+        }
+
+        function showAdminTab(tabName) {
+            document.querySelectorAll('.admin-tab-content').forEach(content => content.style.display = 'none');
+            document.getElementById(`admin-tab-${tabName}`).style.display = 'block';
+
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active-tab'));
+            event.target.classList.add('active-tab');
+        }
+
+        function populateEmployeeDropdowns() {
+            const selects = [
+                document.getElementById('employee-select'),
+                document.getElementById('cuti-employee-select'),
+                document.getElementById('update-cuti-employee-select')
+            ];
+            selects.forEach(select => {
+                if (select) {
+                    select.innerHTML = `<option value="">-- Pilih Karyawan --</option>`;
+                    employees.forEach(emp => {
+                        const option = document.createElement('option');
+                        option.value = emp.id;
+                        option.textContent = emp.name;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        // --- LOGIKA ABSENSI ---
+        function handleAbsensi(type) {
+            const employeeId = document.getElementById('employee-select').value;
+            const pin = document.getElementById('pin-input').value;
+
+            if (!employeeId || !pin) {
+                showModal('error', 'Gagal', 'Harap pilih nama dan masukkan PIN Anda.');
+                return;
+            }
+
+            const employee = employees.find(emp => emp.id == employeeId);
+            if (!employee || employee.pin !== pin) {
+                showModal('error', 'Gagal', 'PIN yang Anda masukkan salah.');
+                return;
+            }
+
+            document.getElementById('absensi-status').innerHTML = `<div class="text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Mendapatkan lokasi Anda...</div>`;
+
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    const userLocation = { lat: position.coords.latitude, lon: position.coords.longitude };
+                    const distance = calculateDistance(userLocation, appSettings.targetLocation);
+
+                    if (distance <= appSettings.toleranceDistance) {
+                        logAttendance(employee.id, employee.name, type, 'Valid');
+                        showModal('success', 'Berhasil!', `Absen ${type} berhasil pada ${new Date().toLocaleTimeString()}. Lokasi Anda valid.`);
+                    } else {
+                        logAttendance(employee.id, employee.name, type, 'Di Luar Jangkauan');
+                        showModal('warning', 'Peringatan', `Anda berada ${Math.round(distance)} meter dari lokasi. Absen ${type} tetap tercatat namun dengan status di luar jangkauan.`);
+                    }
+                    document.getElementById('pin-input').value = '';
+                },
+                error => showModal('error', 'Gagal', 'Tidak dapat mengakses lokasi. Pastikan GPS Anda aktif dan berikan izin lokasi.'),
+                { enableHighAccuracy: true }
+            );
+        }
+
+        function logAttendance(employeeId, name, type, locationStatus) {
+            attendanceLog.push({ employeeId, name, type, timestamp: new Date(), locationStatus });
+            updateAbsensiLogTable();
+        }
+
+        function calculateDistance(loc1, loc2) {
+            const R = 6371e3;
+            const φ1 = loc1.lat * Math.PI / 180;
+            const φ2 = loc2.lat * Math.PI / 180;
+            const Δφ = (loc2.lat - loc1.lat) * Math.PI / 180;
+            const Δλ = (loc2.lon - loc1.lon) * Math.PI / 180;
+            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+        }
+
+        // --- LOGIKA CUTI (DIPERBARUI) ---
+        function getLeaveDetails(employeeId) {
+            const data = leaveData.find(d => d.employeeId == employeeId);
+            if (!data) return { dp: [], al: [], totalDp: 0, totalAl: 0 };
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const activeDp = data.dp.filter(leave => {
+                const expiry = new Date(leave.issueDate);
+                expiry.setMonth(expiry.getMonth() + 3);
+                return expiry >= today;
+            });
+
+            const activeAl = data.al.filter(leave => {
+                const expiry = new Date(leave.issueDate);
+                expiry.setFullYear(expiry.getFullYear() + 1);
+                return expiry >= today;
+            });
+
+            const totalDp = activeDp.reduce((sum, leave) => sum + leave.amount, 0);
+            const totalAl = activeAl.reduce((sum, leave) => sum + leave.amount, 0);
+
+            return { dp: activeDp, al: activeAl, totalDp, totalAl };
+        }
+
+        function displayCutiDetails() {
+            const employeeId = document.getElementById('cuti-employee-select').value;
+            const detailsDiv = document.getElementById('cuti-details');
+
+            if (!employeeId) {
+                detailsDiv.classList.add('hidden');
+                return;
+            }
+
+            const { dp, al, totalDp, totalAl } = getLeaveDetails(employeeId);
+            const employeeName = employees.find(e => e.id == employeeId).name;
+
+            let html = `<h3 class="text-xl font-bold mb-4">Detail Cuti: ${employeeName}</h3>`;
+            html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-6">`;
+
+            // Kolom Total
+            html += `<div>
+                        <div class="p-4 rounded-lg bg-green-100 mb-4">
+                            <p class="font-bold text-lg">Total Sisa Cuti DP</p>
+                            <p class="text-3xl font-extrabold">${totalDp}</p>
+                        </div>
+                        <div class="p-4 rounded-lg bg-blue-100">
+                            <p class="font-bold text-lg">Total Sisa Cuti AL</p>
+                            <p class="text-3xl font-extrabold">${totalAl}</p>
+                        </div>
+                     </div>`;
+
+            // Kolom Rincian
+            html += `<div>`;
+            html += `<h4 class="font-semibold mb-2">Rincian Cuti Aktif:</h4>`;
+            html += `<div class="space-y-2 text-sm">`;
+
+            if (dp.length > 0) {
+                dp.forEach(leave => {
+                    const expiry = new Date(leave.issueDate);
+                    expiry.setMonth(expiry.getMonth() + 3);
+                    html += `<div class="bg-white p-2 rounded border"><strong>${leave.amount} DP</strong> - Kedaluwarsa: ${expiry.toLocaleDateString('id-ID')}</div>`;
+                });
+            } else {
+                html += `<div class="bg-white p-2 rounded border text-gray-500">Tidak ada cuti DP aktif.</div>`;
+            }
+
+            if (al.length > 0) {
+                al.forEach(leave => {
+                    const expiry = new Date(leave.issueDate);
+                    expiry.setFullYear(expiry.getFullYear() + 1);
+                    html += `<div class="bg-white p-2 rounded border"><strong>${leave.amount} AL</strong> - Kedaluwarsa: ${expiry.toLocaleDateString('id-ID')}</div>`;
+                });
+            } else {
+                html += `<div class="bg-white p-2 rounded border text-gray-500">Tidak ada cuti AL aktif.</div>`;
+            }
+
+            html += `</div></div></div>`;
+            detailsDiv.innerHTML = html;
+            detailsDiv.classList.remove('hidden');
+        }
+
+
+        // --- LOGIKA ADMIN (DIPERBARUI) ---
+        function handleAdminLogin() {
+            const password = document.getElementById('admin-password').value;
+            if (password === appSettings.adminPassword) {
+                showPage('admin-panel-page');
+                loadAdminPanel();
+            } else {
+                document.getElementById('admin-login-error').textContent = 'Password salah.';
+            }
+        }
+
+        function logoutAdmin() {
+            document.getElementById('admin-password').value = '';
+            document.getElementById('admin-login-error').textContent = '';
+            showPage('home-page');
+        }
+
+        function loadAdminPanel() {
+            updateEmployeeListAdmin();
+            updateAbsensiLogTable();
+            document.getElementById('setting-location').value = `${appSettings.targetLocation.lat}, ${appSettings.targetLocation.lon}`;
+            document.getElementById('setting-distance').value = appSettings.toleranceDistance;
+            showAdminTab('karyawan');
+        }
+
+        function updateEmployeeListAdmin() {
+            const listDiv = document.getElementById('employee-list-admin');
+            listDiv.innerHTML = '';
+            employees.forEach(emp => {
+                listDiv.innerHTML += `
+                    <div class="flex justify-between items-center bg-gray-100 p-2 rounded-lg">
+                        <span>${emp.name} (PIN: ${emp.pin})</span>
+                        <button onclick="deleteEmployee(${emp.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </div>`;
+            });
+        }
+
+        function addEmployee() {
+            const name = document.getElementById('new-employee-name').value;
+            const pin = document.getElementById('new-employee-pin').value;
+            if (name && pin) {
+                const newId = employees.length > 0 ? Math.max(...employees.map(e => e.id)) + 1 : 1;
+                employees.push({ id: newId, name, pin });
+                leaveData.push({ employeeId: newId, dp: [], al: [] });
+
+                populateEmployeeDropdowns();
+                updateEmployeeListAdmin();
+
+                document.getElementById('new-employee-name').value = '';
+                document.getElementById('new-employee-pin').value = '';
+                showModal('success', 'Berhasil', 'Karyawan baru berhasil ditambahkan.');
+            } else {
+                showModal('error', 'Gagal', 'Nama dan PIN harus diisi.');
+            }
+        }
+
+        function deleteEmployee(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus karyawan ini? Data cuti dan absensi juga akan terhapus.')) {
+                employees = employees.filter(emp => emp.id !== id);
+                leaveData = leaveData.filter(ld => ld.employeeId !== id);
+                attendanceLog = attendanceLog.filter(log => log.employeeId !== id);
+
+                populateEmployeeDropdowns();
+                updateEmployeeListAdmin();
+                updateAbsensiLogTable();
+                showModal('success', 'Berhasil', 'Karyawan telah dihapus.');
+            }
+        }
+
+        function displayAdminCutiEditor() {
+            const employeeId = document.getElementById('update-cuti-employee-select').value;
+            const formDiv = document.getElementById('update-cuti-form');
+            if (!employeeId) {
+                formDiv.classList.add('hidden');
+                return;
+            }
+
+            const data = leaveData.find(d => d.employeeId == employeeId);
+            let html = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold mb-2">Daftar Cuti DP</h4>
+                        <div id="dp-list-admin" class="space-y-2 mb-4"></div>
+                        <h5 class="font-semibold mt-4 mb-2">Tambah Cuti DP Baru</h5>
+                        <div class="flex gap-2">
+                            <input type="number" id="new-dp-amount" placeholder="Jumlah" class="w-1/3 p-2 border rounded-lg">
+                            <input type="date" id="new-dp-date" class="flex-grow p-2 border rounded-lg">
+                            <button onclick="addLeaveGrant('dp')" class="bg-green-500 text-white px-3 rounded-lg hover:bg-green-600"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">Daftar Cuti AL</h4>
+                        <div id="al-list-admin" class="space-y-2 mb-4"></div>
+                        <h5 class="font-semibold mt-4 mb-2">Tambah Cuti AL Baru</h5>
+                        <div class="flex gap-2">
+                            <input type="number" id="new-al-amount" placeholder="Jumlah" class="w-1/3 p-2 border rounded-lg">
+                            <input type="date" id="new-al-date" class="flex-grow p-2 border rounded-lg">
+                            <button onclick="addLeaveGrant('al')" class="bg-blue-500 text-white px-3 rounded-lg hover:bg-blue-600"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            formDiv.innerHTML = html;
+            renderAdminLeaveLists(employeeId);
+            formDiv.classList.remove('hidden');
+        }
+
+        function renderAdminLeaveLists(employeeId) {
+            const data = leaveData.find(d => d.employeeId == employeeId);
+            const dpListDiv = document.getElementById('dp-list-admin');
+            const alListDiv = document.getElementById('al-list-admin');
+
+            dpListDiv.innerHTML = '';
+            data.dp.forEach((leave, index) => {
+                dpListDiv.innerHTML += `
+                    <div class="flex justify-between items-center bg-gray-100 p-2 rounded-lg text-sm">
+                        <span>${leave.amount} hari (diberikan ${new Date(leave.issueDate).toLocaleDateString('id-ID')})</span>
+                        <button onclick="deleteLeaveGrant('dp', ${index})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </div>`;
+            });
+            if (data.dp.length === 0) dpListDiv.innerHTML = `<p class="text-sm text-gray-500">Belum ada data.</p>`;
+
+            alListDiv.innerHTML = '';
+            data.al.forEach((leave, index) => {
+                alListDiv.innerHTML += `
+                    <div class="flex justify-between items-center bg-gray-100 p-2 rounded-lg text-sm">
+                        <span>${leave.amount} hari (diberikan ${new Date(leave.issueDate).toLocaleDateString('id-ID')})</span>
+                        <button onclick="deleteLeaveGrant('al', ${index})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </div>`;
+            });
+            if (data.al.length === 0) alListDiv.innerHTML = `<p class="text-sm text-gray-500">Belum ada data.</p>`;
+        }
+
+        function addLeaveGrant(type) {
+            const employeeId = document.getElementById('update-cuti-employee-select').value;
+            const amount = parseInt(document.getElementById(`new-${type}-amount`).value);
+            const issueDate = document.getElementById(`new-${type}-date`).value;
+
+            if (!employeeId || !amount || !issueDate) {
+                showModal('error', 'Gagal', 'Jumlah dan tanggal harus diisi.');
+                return;
+            }
+
+            const dataIndex = leaveData.findIndex(d => d.employeeId == employeeId);
+            if (dataIndex > -1) {
+                leaveData[dataIndex][type].push({ amount, issueDate });
+                renderAdminLeaveLists(employeeId);
+                document.getElementById(`new-${type}-amount`).value = '';
+                document.getElementById(`new-${type}-date`).value = '';
+            }
+        }
+
+        function deleteLeaveGrant(type, index) {
+            const employeeId = document.getElementById('update-cuti-employee-select').value;
+            const dataIndex = leaveData.findIndex(d => d.employeeId == employeeId);
+            if (dataIndex > -1) {
+                leaveData[dataIndex][type].splice(index, 1);
+                renderAdminLeaveLists(employeeId);
+            }
+        }
+
+        function updateAbsensiLogTable() {
+            const tableBody = document.getElementById('absensi-log-table');
+            tableBody.innerHTML = '';
+            [...attendanceLog].reverse().forEach(log => {
+                tableBody.innerHTML += `
+                    <tr>
+                        <td class="py-2 px-4 border-b">${log.name}</td>
+                        <td class="py-2 px-4 border-b">${log.type.charAt(0).toUpperCase() + log.type.slice(1)}</td>
+                        <td class="py-2 px-4 border-b">${log.timestamp.toLocaleString('id-ID')}</td>
+                        <td class="py-2 px-4 border-b ${log.locationStatus === 'Valid' ? 'text-green-600' : 'text-red-600'}">${log.locationStatus}</td>
+                    </tr>`;
+            });
+        }
+
+        function exportAbsensiToCSV() {
+            if (attendanceLog.length === 0) {
+                showModal('info', 'Info', 'Tidak ada data absensi untuk diekspor.');
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Nama Karyawan,Tipe Absensi,Waktu,Status Lokasi\r\n";
+            attendanceLog.forEach(log => {
+                csvContent += `${log.name},${log.type},"${log.timestamp.toLocaleString('id-ID')}",${log.locationStatus}\r\n`;
+            });
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csvContent));
+            link.setAttribute("download", "laporan_absensi_mamora.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function saveSettings() {
+            const [lat, lon] = document.getElementById('setting-location').value.split(',').map(s => parseFloat(s.trim()));
+            if (lat && lon) appSettings.targetLocation = { lat, lon };
+            appSettings.toleranceDistance = parseInt(document.getElementById('setting-distance').value);
+            const newPassword = document.getElementById('setting-new-password').value;
+            if (newPassword) {
+                appSettings.adminPassword = newPassword;
+                document.getElementById('setting-new-password').value = '';
+            }
+            showModal('success', 'Berhasil', 'Pengaturan telah disimpan.');
+        }
+
+        // --- FUNGSI MODAL NOTIFIKASI ---
+        function showModal(type, title, message) {
+            const modal = document.getElementById('custom-modal');
+            const iconDiv = document.getElementById('modal-icon');
+            const icons = {
+                success: '<i class="fas fa-check-circle text-green-500"></i>',
+                error: '<i class="fas fa-times-circle text-red-500"></i>',
+                warning: '<i class="fas fa-exclamation-triangle text-yellow-500"></i>',
+                info: '<i class="fas fa-info-circle text-blue-500"></i>'
+            };
+            iconDiv.innerHTML = icons[type] || icons['info'];
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        // --- INISIALISASI APLIKASI ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateEmployeeDropdowns();
+            showPage('home-page');
+
+            // --- PERBAIKAN: Menambahkan event listener untuk tombol admin ---
+            document.getElementById('admin-menu-btn').addEventListener('click', () => {
+                showPage('admin-login-page');
+                document.getElementById('admin-password').value = '';
+                document.getElementById('admin-login-error').textContent = '';
+            });
+        });
+    </script>
+</body>
+
+</html>
